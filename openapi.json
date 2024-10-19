@@ -1,0 +1,1205 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Тайм-трекер",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Попов Иван Сергеевич",
+      "email": "frosesss@yandex.ru"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://time-tracker.ru/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "user",
+      "description": "Пользователь"
+    },
+    {
+      "name": "manager",
+      "description": "Менеджер"
+    },
+    {
+      "name": "admin",
+      "description": "Админ"
+    }
+  ],
+  "paths": {
+    "/api/v1/user/profile": {
+      "post": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Регистрация пользователя. Создание записи в таблице",
+        "operationId": "sing-up",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/profile_private"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sign_in_return"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Получение данных профиля",
+        "operationId": "profile-get",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "description": "ID пользователя. Заполнять не обязательно, если запрашивается собственный пользователь.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/profile_public"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Изменение профиля. Внесение изменений в таблицу",
+        "operationId": "profile-edit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/profile_private"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/profile_public"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Удаление профиля",
+        "operationId": "profile-edit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/user/sing-in": {
+      "post": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Вход в аккаунт",
+        "operationId": "sing-in",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Sign_in"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sign_in_return"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/user/task": {
+      "get": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Просмотра задач",
+        "operationId": "get-tasks",
+        "description": "\"user\" может просмотреть только задачи, либо в которых его назначили исполнителем, либо те, которые он и создал. \"admin\" и \"manager\" могут просматривать любые задачи.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "description": "ID пользователя. Заполнять не обязательно. Предназначено для менеджера и админа, чтобы просмотреть задачи, доступные конкретному пользователю.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "1"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (на одной странице 20 задач)",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          },
+          {
+            "name": "task_id",
+            "in": "query",
+            "description": "ID задачи, если требуется просмотреть конкретную задачу.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Создание задачи",
+        "operationId": "post-task",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Task_form"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Редактирование задачи",
+        "description": "\"user\" может изменить только созданную им задачу, другие он редактировать не может. \"admin\" и \"manager\" могут редактировать любые задачи.",
+        "operationId": "post-task",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "query",
+            "description": "ID задачи.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "1"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Task"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/customer": {
+      "get": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Просмотр списка заказчиков",
+        "operationId": "get-customers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (на одной странице 20 задач)",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customers_list"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Создание заказчиков",
+        "operationId": "post-customers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Редактирование заказчиков",
+        "operationId": "patch-customers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "query",
+            "description": "ID заказчика",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Customer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Удаление заказчиков",
+        "operationId": "delete-customers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "query",
+            "description": "ID заказчика",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/team": {
+      "get": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Просмотр списка команд",
+        "operationId": "get-teams",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (на одной странице 20 задач)",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Teams_list"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Создание команд",
+        "operationId": "post-teams",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Team"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Редактирование команд",
+        "operationId": "patch-teams",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "query",
+            "description": "ID команды",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Team"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Удаление команд",
+        "operationId": "delete-teams",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "query",
+            "description": "ID команды",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/project": {
+      "get": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Просмотр списка проектов",
+        "operationId": "get-projects",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "description": "ID пользователя. Заполнять не обязательно. Предназначено для менеджера и админа, чтобы просмотреть проекты, доступные конкретному пользователю.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "1"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы (на одной странице 20 задач)",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "description": "ID проекта. Заполнять не обязательно. Предназначено для просмотра конкретного проекта.",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Projects_list"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Создание проектов",
+        "operationId": "post-projects",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Редактирование проектов",
+        "operationId": "patch-projects",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "query",
+            "description": "ID проекта",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Удаление проектов",
+        "operationId": "delete-projects",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "query",
+            "description": "ID проекта",
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/password-reset-request": {
+      "post": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Запрос на востановление пароля",
+        "operationId": "password-reset-request",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Email пользователя",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "frosesss@yandex.ru"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/password-reset-confirm": {
+      "post": {
+        "tags": [
+          "user",
+          "manager",
+          "admin"
+        ],
+        "summary": "Востановление пароля",
+        "operationId": "password-reset-confirm",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "JWT",
+            "in": "query",
+            "description": "JWT для восстановления",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Password_reset_confirm"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbiden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "profile_private": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Попов Иван Сергеевич"
+          },
+          "email": {
+            "type": "string",
+            "example": "frosesss@yandex.ru"
+          },
+          "password": {
+            "type": "string",
+            "example": "qwerty"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "profile_public": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Попов Иван Сергеевич"
+          },
+          "email": {
+            "type": "string",
+            "example": "frosesss@yandex.ru"
+          },
+          "image": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "Sign_in": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "frosesss@yandex.ru"
+          },
+          "password": {
+            "type": "string",
+            "example": "qwerty"
+          }
+        }
+      },
+      "Sign_in_return": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          }
+        }
+      },
+      "Task_form": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Написать спецификацию в Swagger"
+          },
+          "creator_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "executor_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "expected_time": {
+            "type": "integer",
+            "example": "10",
+            "description": "Время измеряется в часах"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Требуется спецификация для MVP"
+          }
+        }
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Написать спецификацию в Swagger"
+          },
+          "creator_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "executor_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "expected_time": {
+            "type": "integer",
+            "example": "10",
+            "description": "Время измеряется в часах"
+          },
+          "comment": {
+            "type": "string",
+            "example": "Требуется спецификация для MVP"
+          },
+          "status": {
+            "type": "boolean",
+            "example": "True"
+          },
+          "statistic": {
+            "type": "array",
+            "description": "При запросе от \"admin\"/\"manager\" возвращается список времени, затраченного каждым пользователем. При запросе от \"user\" только время относящиеся к тому, кто сделал запрос.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "integer",
+                  "example": "1"
+                },
+                "time_start": {
+                  "type": "string",
+                  "example": "2022-10-26T17:30:00.000-04:00",
+                  "description": "Время начала в формате ISO-8601"
+                },
+                "time_end": {
+                  "type": "string",
+                  "example": "2022-10-27T17:30:00.000-04:00",
+                  "description": "Время окончания в формате ISO-8601"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Лаборатория ШИФТ ЦФТ"
+          },
+          "currency": {
+            "type": "string",
+            "example": "RUB"
+          }
+        }
+      },
+      "Customers_list": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Customer"
+        }
+      },
+      "Team": {
+        "type": "object",
+        "properties": {
+          "team_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "example": "ОПГ Ромашка"
+          },
+          "squad_list": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "example": "1",
+              "description": "ID пользователей, входящих в команду"
+            }
+          }
+        }
+      },
+      "Teams_list": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Team"
+        }
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Тайм-менеджер"
+          },
+          "team_id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "tasks_list": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "example": "1",
+              "description": "ID задач в проекте"
+            }
+          }
+        }
+      },
+      "Projects_list": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Project"
+        }
+      },
+      "Password_reset_confirm": {
+        "type": "string",
+        "example": "qwerty"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
